@@ -1,7 +1,6 @@
 package cn.bugstack.mybatis;
 
 import org.dom4j.Document;
-import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.xml.sax.InputSource;
@@ -16,13 +15,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * @author 小傅哥，微信：fustack
- * @description 工厂建造者
- * @github https://github.com/fuzhengwei
- * @Copyright 公众号：bugstack虫洞栈 | 博客：https://bugstack.cn - 沉淀、分享、成长，让自己和他人都能有所收获！
- */
 public class SqlSessionFactoryBuilder {
+
+    private final Pattern pattern = Pattern.compile("(#\\{(.*?)})");
 
     public DefaultSqlSessionFactory build(Reader reader) {
         SAXReader saxReader = new SAXReader();
@@ -30,7 +25,7 @@ public class SqlSessionFactoryBuilder {
             Document document = saxReader.read(new InputSource(reader));
             Configuration configuration = parseConfiguration(document.getRootElement());
             return new DefaultSqlSessionFactory(configuration);
-        } catch (DocumentException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
@@ -71,13 +66,11 @@ public class SqlSessionFactoryBuilder {
     // 获取SQL语句信息
     private Map<String, XNode> mapperElement(List<Element> list) {
         Map<String, XNode> map = new HashMap<>();
-
         Element element = list.get(0);
         List content = element.content();
         for (Object o : content) {
             Element e = (Element) o;
             String resource = e.attributeValue("resource");
-
             try {
                 Reader reader = Resources.getResourceAsReader(resource);
                 SAXReader saxReader = new SAXReader();
@@ -96,7 +89,6 @@ public class SqlSessionFactoryBuilder {
 
                     // ? 匹配
                     Map<Integer, String> parameter = new HashMap<>();
-                    Pattern pattern = Pattern.compile("(#\\{(.*?)})");
                     Matcher matcher = pattern.matcher(sql);
                     for (int i = 1; matcher.find(); i++) {
                         String g1 = matcher.group(1);
@@ -118,7 +110,6 @@ public class SqlSessionFactoryBuilder {
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
-
         }
         return map;
     }
